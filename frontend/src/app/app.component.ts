@@ -7,7 +7,7 @@ import { TripPreferences, TripItinerary, ChatMessage } from './models/itinerary.
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   title = 'AI Travel Itinerary Assistant';
   
   currentView: 'form' | 'itinerary' | 'chat' = 'form';
@@ -19,25 +19,25 @@ export class AppComponent implements OnInit {
 
   constructor(private apiService: ApiService) {}
 
-  ngOnInit() {
-    // Check API health
-    this.apiService.healthCheck().subscribe({
-      next: (response) => {
-        console.log('Backend is healthy:', response);
-      },
-      error: (error) => {
-        console.error('Backend health check failed:', error);
-        this.error = 'Unable to connect to backend. Please ensure the server is running.';
-      }
-    });
-  }
+  // ngOnInit() {
+  //   // Check API health
+  //   this.apiService.healthCheck().subscribe({
+  //     next: (response) => {
+  //       console.log('Backend is healthy:', response);
+  //     },
+  //     error: (error) => {
+  //       console.error('Backend health check failed:', error);
+  //       this.error = 'Unable to connect to backend. Please ensure the server is running.';
+  //     }
+  //   });
+  // }
 
   onFormSubmit(preferences: TripPreferences) {
     this.isLoading = true;
     this.error = undefined;
     this.tripPreferences = preferences;
 
-    this.apiService.generateItinerary(preferences).subscribe({
+    this.apiService.generateRAGItinerary(preferences).subscribe({
       next: (response) => {
         this.isLoading = false;
         if (response.success) {

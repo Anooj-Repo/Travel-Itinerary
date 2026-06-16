@@ -2,6 +2,15 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  padding: 1rem;
+
+  .fullscreen-gif {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: 12px;
+  }
 }
 
 // Full-Screen Hero Section with Animated GIF Background
@@ -11,7 +20,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 12px;
   overflow: hidden;
+  background-image: url('../assets/brown-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  padding: 1rem;
 }
 
 .hero-background {
@@ -22,13 +37,8 @@
   height: 100%;
   z-index: 0;
   cursor: pointer;
+  padding: 1rem;
   
-  .fullscreen-gif {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
 }
 
 .hero-content-wrapper {
@@ -62,7 +72,7 @@
     .gradient-text {
       background: linear-gradient(to right, #ffffff, #f0f0f0, #ffffff);
       -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      // -webkit-text-fill-color: transparent;
       background-clip: text;
       filter: drop-shadow(0 4px 20px rgba(0, 0, 0, 0.8));
     }
@@ -85,9 +95,9 @@
   flex-wrap: wrap;
   
   .feature-badge {
-    background: rgba(102, 126, 234, 0.9);
+    background: white;
     backdrop-filter: blur(15px);
-    border: 2px solid rgba(255, 255, 255, 0.6);
+    border: 2px solid rgba(244, 240, 240, 0.6);
     padding: 12px 24px;
     border-radius: 30px;
     display: flex;
@@ -97,10 +107,10 @@
     font-size: 1.05rem;
     transition: all 0.3s;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    color: white;
+    color: black;
     
     &:hover {
-      background: rgba(118, 75, 162, 0.9);
+      background: rgba(218, 214, 222, 0.9);
       transform: translateY(-3px);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
@@ -158,7 +168,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 255, 255, 0.95);
+  background: transparent;
+  backdrop-filter: blur(6px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -167,18 +178,27 @@
 
   p {
     margin-top: 20px;
-    font-size: 1.2rem;
-    color: #667eea;
+    font-size: 1.5rem;
+    color: #000000c2;
+    font-family: sans-serif;
+    letter-spacing: 1px;
   }
 }
 
 .spinner {
   width: 60px;
   height: 60px;
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #667eea;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  /* Creates the fading wheel effect using a conic gradient mask */
+  background: conic-gradient(
+    #000000 0deg, 
+    rgba(0, 0, 0, 0.1) 300deg, 
+    transparent 360deg
+  );
+  /* Masks the center to turn the solid circle into a ring */
+  -webkit-mask: radial-gradient(farthest-side, transparent 60%, #000000 70%);
+  mask: radial-gradient(farthest-side, transparent 60%, #000000 70%);
+  animation: spin 1s steps(30) infinite;
 }
 
 @keyframes spin {
@@ -186,24 +206,31 @@
   100% { transform: rotate(360deg); }
 }
 
+
+
 .app-main {
   flex: 1;
-  padding: 0 20px 60px;
-  max-width: 1400px;
+  // padding: 0 20px 60px;
+  // max-width: 1400px;
   width: 100%;
   margin: 0 auto;
   position: relative;
   z-index: 2;
+  border-radius: 12px;
+  background-image: url('/assets/background.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .form-background-section {
   position: relative;
   min-height: 100vh;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
+  // width: 100vw;
+  // margin-left: calc(-50vw + 50%);
+  // margin-right: calc(-50vw + 50%);
   padding: 60px 20px;
-  background-image: url('/assets/giphy.gif');
+  // background-image: url('/assets/long-background.png');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -214,6 +241,14 @@
 
 .view-container {
   animation: fadeIn 0.3s ease-in;
+}
+
+.background-img{
+  background-image: url('/assets/background1.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  min-height: 88vh;
 }
 
 @keyframes fadeIn {
@@ -231,7 +266,7 @@
   display: flex;
   gap: 10px;
   justify-content: center;
-  margin-bottom: 20px;
+  margin: 20px;
   flex-wrap: wrap;
 
   button {
@@ -267,8 +302,8 @@
 }
 
 .app-footer {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: #f7f7f7;
+  color:black;
   text-align: center;
   padding: 20px;
   margin-top: auto;

@@ -9,7 +9,7 @@ import { environment } from '../../environments/environment';
 })
 export class ApiService {
   private baseUrl = environment.apiUrl;
-  private ragBaseUrl = environment.ragApiUrl || 'http://localhost:5001/api/rag';
+  private ragBaseUrl = environment.ragApiUrl || 'http://localhost:5000/api/rag';
 
   constructor(private http: HttpClient) { }
 

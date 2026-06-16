@@ -1,9 +1,8 @@
 <div class="app-container">
+
   <!-- Full-Screen Hero Section with Form (only show on form view) -->
   <div *ngIf="currentView === 'form'" class="hero-fullscreen">
-    <div class="hero-background" (click)="scrollToForm()">
-      <img src="assets/3d-animated-landing-page.gif" alt="Travel Animation" class="fullscreen-gif">
-    </div>
+
     
     <div class="hero-content-wrapper">
       <div class="hero-header" (click)="scrollToForm()">
@@ -30,24 +29,27 @@
   </div>
 
   <!-- Simple Header for other views -->
-  <header class="app-header" *ngIf="currentView !== 'form'">
+  <!-- <header class="app-header" *ngIf="currentView !== 'form'">
     <h1>🌍 {{ title }}</h1>
     <p>Click to plan your perfect trip with AI-powered personalized itineraries</p>
-  </header>
+  </header> -->
 
-  <div class="error-message" *ngIf="error">
+  <!-- <div class="error-message" *ngIf="error">
     <span class="error-icon">⚠️</span>
     <span>{{ error }}</span>
-  </div>
+  </div> -->
 
   <div class="loading-overlay" *ngIf="isLoading">
     <div class="spinner"></div>
     <p>Generating your personalized itinerary...</p>
   </div>
-
+ 
   <main class="app-main">
 
-    <app-rag-itinerary></app-rag-itinerary>
+    <!-- Rag uploading is called here....... -->
+
+    <!-- <app-rag-itinerary></app-rag-itinerary> -->
+
     <!-- Trip Form View with Full-Screen Background -->
     <div *ngIf="currentView === 'form'" class="view-container">
       <div class="form-background-section">
@@ -55,8 +57,10 @@
       </div>
     </div>
 
-    <!-- Itinerary View -->
-    <div *ngIf="currentView === 'itinerary'" class="view-container">
+  </main>
+
+   <!-- Itinerary View -->
+    <div *ngIf="currentView === 'itinerary'" class="view-container background-img">
       <div class="view-actions">
         <button (click)="startNewItinerary()" class="btn-secondary">
           🔄 New Itinerary
@@ -72,7 +76,8 @@
       </app-itinerary-display>
     </div>
 
-    <!-- Chat View -->
+
+        <!-- Chat View -->
     <div *ngIf="currentView === 'chat'" class="view-container">
       <div class="view-actions">
         <button (click)="toggleChatView()" class="btn-secondary">
@@ -87,7 +92,6 @@
         (sendMessage)="onSendChatMessage($event)">
       </app-chat-interface>
     </div>
-  </main>
 
   <footer class="app-footer">
     <p>Powered by AI for TCS GenAI Hackathon 2026</p>
