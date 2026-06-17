@@ -232,7 +232,33 @@ class RAGService:
             print("==================\n")
 
             return f"Error generating RAG itinerary: {str(e)}\n\nFalling back to standard generation."
-                    
-        #except Exception as e:
-                    #print(f"Error in RAG generation: {str(e)}")
-                    #return f"Error generating RAG itinerary: {str(e)}\n\nFalling back to standard generation."
+
+    def get_documents(self) -> Dict:
+        """Get list of uploaded document names and total chunk count"""
+        if self.vectordb is None:
+            return {"sources": [], "total_chunks": 0}
+        
+        sources = set()
+        for doc in self.vectordb.docstore._dict.values():
+            if doc.metadata and "source" in doc.metadata:
+                sources.add(doc.metadata["source"])
+                
+        return {
+            "sources": list(sources),
+            "total_chunks": len(self.vectordb.docstore._dict)
+        }
+
+    def clear_documents(self) -> bool:
+        """Clear the vector database and remove persisted files"""
+        self.vectordb = None
+        self.embeddings_available = Config.GENAI_API_KEY and Config.GENAI_API_KEY not in ["YOUR_KEY_HERE", "your_api_key_here", ""]
+        import shutil
+        if os.path.exists(self.persist_directory):
+            try:
+                shutil.rmtree(self.persist_directory)
+                os.makedirs(self.persist_directory, exist_ok=True)
+                return True
+            except Exception as e:
+                print(f"Error clearing vector store: {e}")
+                return False
+        return True

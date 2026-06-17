@@ -106,3 +106,33 @@ def generate_rag_itinerary():
             "success": False,
             "error": str(e)
         }), 500
+
+@app.route('/api/rag/documents', methods=['GET'])
+def get_rag_documents():
+    """Retrieve list of currently uploaded and indexed travel documents"""
+    try:
+        docs_info = rag_service.get_documents()
+        return jsonify({
+            "success": True,
+            "documents": docs_info
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+@app.route('/api/rag/documents/clear', methods=['DELETE'])
+def clear_rag_documents():
+    """Clear all uploaded travel documents"""
+    try:
+        success = rag_service.clear_documents()
+        return jsonify({
+            "success": success,
+            "message": "All documents cleared successfully" if success else "Failed to clear documents"
+        }), 200 if success else 500
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
