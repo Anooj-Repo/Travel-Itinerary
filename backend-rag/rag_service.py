@@ -164,6 +164,7 @@ class RAGService:
                 "message": f"Error: {str(e)}",
                 "chunks_indexed": 0
             }        
+    
     def generate_rag_itinerary(self, preferences: Dict) -> str:
         """Generate itinerary using RAG with uploaded documents"""
        

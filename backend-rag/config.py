@@ -10,7 +10,7 @@ class Config:
     # # Model Configuration
     # CHAT_MODEL = "azure_ai/genailab-maas-Deepseek-V3-0324"
     # Flask Configuration
-    FLASK_PORT = 5001
+    FLASK_PORT = 5000
     FLASK_HOST = "0.0.0.0"
     DEBUG = True
 

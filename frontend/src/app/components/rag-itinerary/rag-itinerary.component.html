@@ -7,12 +7,12 @@
         <button class="tab-button" [class.active]="currentView === 'upload'" (click)="switchView('upload')">
             📤 Upload Documents
         </button>
-        <button class="tab-button" [class.active]="currentView === 'generate'" (click)="switchView('generate')">
+        <!-- <button class="tab-button" [class.active]="currentView === 'generate'" (click)="switchView('generate')">
             ✨ Generate Itinerary
         </button>
         <button class="tab-button" [class.active]="currentView === 'search'" (click)="switchView('search')">
             🔍 Search Documents
-        </button>
+        </button> -->
     </div>
 
     <!-- Document Status Bar -->
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Generate View -->
-    <div class="content-section" *ngIf="currentView === 'generate'">
+    <!-- <div class="content-section" *ngIf="currentView === 'generate'">
         <div class="generate-card">
             <h2>Generate RAG-Based Itinerary</h2>
             <p *ngIf="uploadedDocuments.length === 0" class="warning-message">
@@ -111,10 +111,10 @@
                 </button>
             </form>
         </div>
-    </div>
+    </div> -->
 
     <!-- Search View -->
-    <div class="content-section" *ngIf="currentView === 'search'">
+    <!-- <div class="content-section" *ngIf="currentView === 'search'">
         <div class="search-card">
             <h2>Search Documents</h2>
             <p>Search through your uploaded travel documents for specific information.</p>
@@ -139,10 +139,10 @@
                 No results found. Try different search terms.
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Results View -->
-    <div class="content-section" *ngIf="currentView === 'results' && itinerary">
+    <!-- <div class="content-section" *ngIf="currentView === 'results' && itinerary">
         <div class="results-header">
             <h2>Your RAG-Enhanced Itinerary</h2>
             <button class="btn-secondary" (click)="resetForm()">
@@ -151,5 +151,5 @@
         </div>
 
         <app-itinerary-display [itinerary]="itinerary"></app-itinerary-display>
-    </div>
+    </div> -->
 </div>
