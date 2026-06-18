@@ -1,0 +1,46 @@
+Demo 
+During the final stage of the hackathon, each team will present their AI solution 
+to the jury and audience. This is your opportunity to showcase the problem
+solving approach, technical implementation, and the impact of your project — 
+concisely and convincingly. 
+TCS Confidential | 9   
+Each team will get exactly 5 minutes to present. Ensure that everyone has the 
+opportunity to speak. Time management is critical — plan your demo to highlight 
+the essence of your work effectively.  
+8.6.1. Suggested Flow for Demo 
+• Introduction (30 sec): Briefly state your team’s name, problem statement, and 
+the objective of your solution.  
+• Problem Context (30 sec): What challenge are you solving and why is it 
+important? 
+• Solution Overview (1 min): Describe the AI model, approach taken, tools used, 
+and any innovation introduced. 
+• Live Demo or Walkthrough (2 min): Demonstrate your working prototype or 
+solution flow with emphasis on usability and impact. 
+• Results & Metrics (30 sec): Present performance metrics (e.g., accuracy, 
+precision, AUC), validations, or comparisons with baseline. 
+• Conclusion (30 sec): Summarize key outcomes, limitations (if any), and 
+possible future enhancements. 
+8.6.2. Time Management Tips 
+• Assign a presenter for each flow, rehearse to stay within the time. 
+• Avoid spending too much time on theoretical background. 
+• Prioritize clarity and flow over technical depth — jury may ask follow-up 
+questions afterward. 
+8.7. 
+8.8. 
+Submission Guidelines 
+Each team must submit their solution within the defined Deadline, and it must 
+include: 
+• Source code with README 
+• Model notebook(s) or pipeline with explanation 
+• Presentation deck containing Problem statement, Solution approach, AI/ML 
+techniques and Challenges Faced 
+• Demo video (max 5 minutes) -Optional 
+Evaluation Criteria 
+Projects are evaluated on a blend of innovation, impact, and execution. 
+Scoring Parameters: 
+TCS Confidential | 10   
+• Participation and engagement during sessions 
+• Successful completion of hands-on activities 
+• Completion of the working application 
+• Creativity and innovation in the given projects 
+• Participation and demonstration of understanding quizzes and debates 
