@@ -1,0 +1,223 @@
+<div class="app-container">
+  <div class="bg-blob blob-1"></div>
+  <div class="bg-blob blob-2"></div>
+  <div class="bg-blob blob-3"></div>
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-logo">
+      <span class="logo-pulse"></span>
+      <h1>BA Automated Impact Summarizer</h1>
+    </div>
+    <div class="header-tag">
+      <span class="pulse-dot"></span>
+      <span>TCS GenAI Lab API Connected</span>
+    </div>
+  </header>
+
+  <!-- Main Grid Layout -->
+  <main class="dashboard-grid">
+    
+    <!-- Left Column: Knowledge Base & Summarizer -->
+    <section class="left-panel">
+      
+      <!-- Compact Drag & Drop upload widget -->
+      <div class="glass-card upload-widget">
+        <div class="card-header">
+          <div class="title-with-icon">
+            <span class="card-icon">📂</span>
+            <h3>Requirements & Specs Knowledge Base</h3>
+          </div>
+          <button class="btn-clear" *ngIf="uploadedDocuments.length > 0" (click)="clearAllDocuments()">
+            🗑️ Clear KB
+          </button>
+        </div>
+
+        <div class="upload-zone">
+          <input type="file" accept=".pdf,.txt" (change)="onFileSelected($event)" id="specFileInput" hidden>
+          <label for="specFileInput" class="file-picker-label" [class.selected]="selectedFile !== null">
+            <span class="icon">{{ selectedFile ? '📄' : '📤' }}</span>
+            <span class="text">{{ selectedFile ? selectedFile.name : 'Select PDF/TXT Business Specs' }}</span>
+          </label>
+          <button class="btn-index" [disabled]="!selectedFile || isUploading" (click)="uploadDocument()">
+            <span *ngIf="!isUploading">Index Doc</span>
+            <span *ngIf="isUploading">Indexing...</span>
+          </button>
+        </div>
+
+        <div class="status-message" *ngIf="uploadMessage" [class.error]="uploadMessage.includes('❌')" [class.success]="uploadMessage.includes('✅')">
+          {{ uploadMessage }}
+        </div>
+
+        <!-- Tag bar showing uploaded documents -->
+        <div class="tag-bar" *ngIf="uploadedDocuments.length > 0">
+          <span class="tag-label">Active References:</span>
+          <div class="tag-list">
+            <span class="doc-tag" *ngFor="let doc of uploadedDocuments" title="{{ doc }}">
+              📑 {{ doc }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Impact Report Card -->
+      <div class="glass-card report-card">
+        <div class="card-header">
+          <div class="title-with-icon">
+            <span class="card-icon">📊</span>
+            <h3>Business Impact Analysis Report</h3>
+          </div>
+          <button class="btn-generate" [disabled]="isSummarizing || uploadedDocuments.length === 0" (click)="generateImpactSummary()">
+            <span *ngIf="!isSummarizing">✨ Run Analysis</span>
+            <span *ngIf="isSummarizing">⏳ Analyzing...</span>
+          </button>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-report-state" *ngIf="!parsedReport && !isSummarizing">
+          <div class="empty-icon">📊</div>
+          <p>No analysis generated. Upload specifications above and click <strong>"Run Analysis"</strong> to generate the highly-structured Business Impact Report.</p>
+        </div>
+
+        <!-- Loading State -->
+        <div class="loading-state" *ngIf="isSummarizing">
+          <div class="glow-spinner"></div>
+          <p>Parsing requirements and conducting impact analysis via TCS GenAI DeepSeek/GPT-4o...</p>
+        </div>
+
+        <!-- Structured Report Display (Expanding/Collapsing Sections) -->
+        <div class="structured-report" *ngIf="parsedReport && !isSummarizing">
+          
+          <!-- Section 1: Executive Summary -->
+          <div class="accordion-item" [class.expanded]="expandedSections.exec">
+            <button class="accordion-header" (click)="expandedSections.exec = !expandedSections.exec">
+              <span class="accordion-title">📋 Executive Summary</span>
+              <span class="accordion-arrow">{{ expandedSections.exec ? '▼' : '▶' }}</span>
+            </button>
+            <div class="accordion-content">
+              <pre class="formatted-markdown">{{ parsedReport.executiveSummary || 'No data generated.' }}</pre>
+            </div>
+          </div>
+
+          <!-- Section 2: Proposed Changes -->
+          <div class="accordion-item" [class.expanded]="expandedSections.changes">
+            <button class="accordion-header" (click)="expandedSections.changes = !expandedSections.changes">
+              <span class="accordion-title">🔧 Proposed Changes</span>
+              <span class="accordion-arrow">{{ expandedSections.changes ? '▼' : '▶' }}</span>
+            </button>
+            <div class="accordion-content">
+              <pre class="formatted-markdown">{{ parsedReport.proposedChanges || 'No data generated.' }}</pre>
+            </div>
+          </div>
+
+          <!-- Section 3: System & Process Impact -->
+          <div class="accordion-item" [class.expanded]="expandedSections.impact">
+            <button class="accordion-header" (click)="expandedSections.impact = !expandedSections.impact">
+              <span class="accordion-title">⚙️ System & Process Impact</span>
+              <span class="accordion-arrow">{{ expandedSections.impact ? '▼' : '▶' }}</span>
+            </button>
+            <div class="accordion-content">
+              <pre class="formatted-markdown">{{ parsedReport.systemImpact || 'No data generated.' }}</pre>
+            </div>
+          </div>
+
+          <!-- Section 4: Stakeholder & Risk Matrix -->
+          <div class="accordion-item" [class.expanded]="expandedSections.risk">
+            <button class="accordion-header" (click)="expandedSections.risk = !expandedSections.risk">
+              <span class="accordion-title">⚠️ Stakeholder & Risk Matrix</span>
+              <span class="accordion-arrow">{{ expandedSections.risk ? '▼' : '▶' }}</span>
+            </button>
+            <div class="accordion-content">
+              <pre class="formatted-markdown">{{ parsedReport.riskMatrix || 'No data generated.' }}</pre>
+            </div>
+          </div>
+
+          <!-- Export Buttons -->
+          <div class="report-exports">
+            <span class="export-label">Export Report:</span>
+            <div class="export-buttons-group">
+              <button (click)="exportReport('txt')" class="btn-export">📄 Download TXT</button>
+              <button (click)="exportReport('json')" class="btn-export">📋 Download JSON</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- Right Column: Interactive Chat Assistant -->
+    <section class="right-panel">
+      
+      <div class="glass-card chat-card">
+        <div class="card-header">
+          <div class="title-with-icon">
+            <span class="card-icon">💬</span>
+            <h3>BA System AI Assistant</h3>
+          </div>
+          <span class="chat-status">RAG Mode Active</span>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages-container">
+          <div class="message-wrapper" *ngFor="let msg of chatMessages" [class.user-msg]="msg.role === 'user'" [class.assistant-msg]="msg.role === 'assistant'">
+            <div class="message-bubble">
+              <!-- Attached Image Preview in Chat -->
+              <div class="attached-img-preview" *ngIf="msg.image">
+                <img [src]="msg.image" alt="Attached diagram">
+              </div>
+              <p class="message-content">{{ msg.content }}</p>
+              <span class="message-time">{{ msg.timestamp | date:'shortTime' }}</span>
+            </div>
+          </div>
+          
+          <!-- Typing Loader -->
+          <div class="assistant-msg message-wrapper" *ngIf="isChatLoading">
+            <div class="message-bubble typing-bubble">
+              <span class="dot"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attached file strip -->
+        <div class="attached-file-strip" *ngIf="attachedImageBase64">
+          <span class="file-name">📷 Attached Image: {{ attachedImageName }}</span>
+          <button class="btn-remove-attach" (click)="removeAttachedImage()">✕</button>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="chat-input-bar">
+          
+          <!-- Attach Image Button (triggers Vision OCR) -->
+          <input type="file" accept="image/*" (change)="onImageAttached($event)" id="chatImageInput" hidden>
+          <label for="chatImageInput" class="btn-icon-attach" title="Attach flowchart, diagram, or change log image">
+            📷
+          </label>
+
+          <!-- Voice Mic Button -->
+          <button type="button" class="btn-icon-mic" [class.listening]="isListening" (click)="toggleSpeech()" title="Speak requirements">
+            🎙️
+          </button>
+
+          <!-- Text Input -->
+          <input type="text" [(ngModel)]="chatInput" placeholder="Ask about specifications, process maps, or impact..." (keyup.enter)="sendChatMessage()">
+
+          <!-- Send Button -->
+          <button class="btn-send" (click)="sendChatMessage()" [disabled]="!chatInput.trim() && !attachedImageBase64">
+            ➔
+          </button>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>BA Automated Impact Analysis Summarizer &copy; 2026. Built on local FAISS & TCS GenAI Lab API (DeepSeek-V3 / GPT-4o).</p>
+  </footer>
+</div>
