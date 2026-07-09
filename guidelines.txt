@@ -192,3 +192,790 @@ Symbols are queried on Finnhub for real-time prices.
 A comprehensive risk summary is rendered under the "Risk Report" tab.
 A portfolio allocation chart is drawn.
 Conversational Agent: Ask follow-up queries using the microphone button (Speech-to-Text) and verify text answers are read aloud (Text-to-Speech). Upload an image with chart details, verifying OCR response.
+
+
+
+**************************************************************************************************
+I have hackathlon and need help with solving problem statement to provide AI solution. We are going to use gen ai TCS option. I aready have a repository C:\Learning\Travel-Itinerary where we have created a solution using angular and python flask. frontend-market folder have angular and backend-rag-market folder have python solution. Idea is to generate a implementation plan with help of copilot in visual studio code for generating the code for the solution. Need help with creating frontend-task folder and backend-mcp-task new folder within the same solution of travel iternary for the new solution. Please see the problem statement below.
+
+Intelligent Task Routing System
+Summary:
+
+Develop a system that intelligently routes tasks to appropriate AI agents or human
+workers based on complexity, expertise requirements, and current workload.
+Problem Statement:
+Optimal task assignment requires understanding task requirements and
+available resources. Your task is to create an intelligent routing system that analyzes incoming
+tasks, determines optimal assignment strategies, and dynamically routes work to AI agents or
+human workers. The system should consider skill matching, workload balancing, quality
+requirements, and cost optimization while maintaining service level agreements.
+
+Steps:
+
+• Design task analysis and classification system for routing decisions
+• Implement skill matching algorithms for optimal resource assignment
+• Create dynamic load balancing and queue management capabilities
+• Build quality prediction and SLA monitoring systems
+• Develop cost optimization algorithms considering resource costs and performance
+• Include escalation and reassignment mechanisms for complex scenarios
+
+Suggested Data Requirements:
+
+• Task descriptions with complexity and skill requirement annotations
+• Resource profiles including AI agent capabilities and human expertise
+• Historical performance data and quality metrics
+• Cost information and SLA requirements
+
+
+I have created a initial use case after some research, consider this for creating the implementation plan.
+=================================================
+INITIAL IMPLEMENTATION USE CASE
+=================================================
+
+Although the architecture must be generic, reusable, configurable, and adaptable for different hackathon problem statements, the first implementation should be based on the following use case.
+
+Problem Statement: Intelligent Task Routing System
+
+Summary:
+
+Develop a system that intelligently routes tasks to appropriate AI agents or human workers based on complexity, expertise requirements, current workload, skills, quality requirements, service level agreements (SLA), and cost optimization.
+
+Business Objective:
+
+The system should analyze incoming tasks, understand task requirements, evaluate available resources, and recommend the optimal assignment strategy. The system should intelligently determine whether tasks should be assigned to AI Agents, Human Experts, or a combination of both.
+
+The solution must support:
+
+- Dynamic routing
+- Intelligent assignment recommendations
+- Escalation management
+- Reassignment mechanisms
+- Workload balancing
+- Quality monitoring
+- SLA tracking
+- Cost optimization
+
+=================================================
+CORE FUNCTIONAL REQUIREMENTS
+=================================================
+
+1. Task Analysis and Classification
+
+The system should:
+
+- Analyze uploaded project or task documents
+- Extract task descriptions
+- Identify complexity level
+- Identify required skills
+- Categorize task type
+- Estimate effort and priority
+- Generate structured task metadata
+
+2. Resource Analysis
+
+Maintain profiles for:
+
+- AI Agents
+- Human Resources
+
+Each profile should contain:
+
+- Skills
+- Expertise
+- Experience
+- Capabilities
+- Availability
+- Current Workload
+- Performance Scores
+- Quality Scores
+- Cost Information
+
+3. Intelligent Skill Matching
+
+The system should:
+
+- Match task requirements against available resources
+- Calculate matching scores
+- Generate ranking for potential assignments
+- Recommend best-fit AI agents and human experts
+
+4. Workload Balancing
+
+The system should:
+
+- Monitor current workload
+- Detect overloaded resources
+- Detect underutilized resources
+- Balance assignments across available resources
+- Recommend alternate resources
+
+5. Cost Optimization
+
+The system should:
+
+- Estimate execution cost
+- Compare available resources
+- Optimize assignment cost
+- Provide cost-benefit recommendations
+
+6. Quality Prediction
+
+The system should:
+
+- Predict expected output quality
+- Use historical performance data
+- Use expert analysis data
+- Use task-resource matching scores
+
+7. SLA Monitoring
+
+The system should:
+
+- Validate SLA compliance
+- Predict delivery risks
+- Predict deadline violations
+- Recommend corrective actions
+
+8. Escalation and Reassignment
+
+The system should:
+
+- Detect high-risk scenarios
+- Detect resource failures
+- Detect SLA breaches
+- Recommend reassignment
+- Escalate tasks to experts when required
+
+=================================================
+SUGGESTED DATA SOURCES
+=================================================
+
+The implementation should support the following data sources:
+
+1. Uploaded Project Documents
+2. Uploaded Requirement Documents
+3. RAG Knowledge Base
+4. Expert Analysis Repository
+5. Policy Documents
+6. Historical Assignment Data
+7. Historical Performance Metrics
+8. Resource Skill Matrix
+9. Resource Availability Data
+10. Cost Information
+11. SLA Definitions
+12. Quality Metrics
+13. MCP Tools
+14. Internal Enterprise APIs
+
+=================================================
+INTERNAL ENTERPRISE DATA PLATFORM
+=================================================
+
+For the hackathon implementation, use an Internal Enterprise Data Platform built using SQLite and Flask APIs.
+
+Do not depend on external systems for core functionality.
+
+The platform should simulate a realistic enterprise environment using internally managed datasets and APIs.
+
+The design must remain extensible so future integrations with Jira, Azure DevOps, ServiceNow, GitHub, SAP, Salesforce, or custom enterprise platforms can be added without redesigning the solution.
+
+=================================================
+SQLITE DATABASE REQUIREMENTS
+=================================================
+
+Design SQLite tables for:
+
+1. Human Resources
+
+Fields:
+
+- ResourceId
+- Name
+- Role
+- Skills
+- Experience
+- Availability
+- CurrentWorkload
+- QualityScore
+- PerformanceScore
+- CostPerHour
+
+2. AI Agents
+
+Fields:
+
+- AgentId
+- AgentName
+- Capabilities
+- Specialization
+- Availability
+- PerformanceScore
+- QualityScore
+
+3. Projects
+
+Fields:
+
+- ProjectId
+- ProjectName
+- Priority
+- Status
+- BusinessArea
+- SLA
+
+4. Tasks
+
+Fields:
+
+- TaskId
+- ProjectId
+- TaskName
+- Description
+- SkillsRequired
+- Complexity
+- EstimatedEffort
+- Priority
+- Status
+
+5. Historical Assignments
+
+Fields:
+
+- AssignmentId
+- TaskId
+- ResourceId
+- CompletionTime
+- QualityScore
+- Outcome
+
+6. SLA Rules
+
+Fields:
+
+- SLAId
+- Category
+- TargetDuration
+- Priority
+- EscalationRule
+
+7. Cost Models
+
+Fields:
+
+- ResourceType
+- CostPerHour
+- CostWeight
+
+8. Expert Analysis
+
+Fields:
+
+- Category
+- Recommendation
+- Notes
+- ExpertName
+
+9. Routing Decisions
+
+Fields:
+
+- TaskId
+- SelectedResource
+- RecommendationReason
+- ConfidenceScore
+- CreatedDate
+
+=================================================
+SIMULATED LIVE DATA APIS
+=================================================
+
+Create internal Flask APIs that simulate live enterprise data.
+
+Examples:
+
+GET /api/resources
+
+GET /api/resources/workload
+
+GET /api/resources/availability
+
+GET /api/resources/skills
+
+GET /api/tasks
+
+GET /api/tasks/open
+
+GET /api/tasks/assigned
+
+GET /api/projects
+
+GET /api/projects/status
+
+GET /api/history
+
+GET /api/performance
+
+GET /api/costing
+
+GET /api/sla
+
+GET /api/ai-agents
+
+The APIs should return dynamic data from SQLite and act as a Live Data Layer.
+
+=================================================
+HOW MCP SHOULD BE USED IN THIS USE CASE
+=================================================
+
+MCP should be a primary architectural component.
+
+All business agents must retrieve operational data through MCP Servers.
+
+Agents should not directly access SQLite.
+
+Architecture:
+
+Agent
+   |
+MCP Client
+   |
+MCP Server
+   |
+Internal API
+   |
+SQLite
+
+=================================================
+MCP SERVERS
+=================================================
+
+1. Resource Management MCP Server
+
+Tools:
+
+- get_available_resources()
+- get_current_workload()
+- get_resource_skills()
+- get_resource_capacity()
+
+2. Skill Repository MCP Server
+
+Tools:
+
+- search_skills()
+- match_skills()
+- get_skill_profiles()
+
+3. Policy Management MCP Server
+
+Tools:
+
+- search_policies()
+- get_business_rules()
+- get_escalation_rules()
+
+4. Expert Knowledge MCP Server
+
+Tools:
+
+- search_expert_recommendations()
+- get_historical_guidance()
+
+5. Historical Performance MCP Server
+
+Tools:
+
+- get_historical_assignments()
+- get_success_rates()
+- get_quality_scores()
+
+6. SLA Management MCP Server
+
+Tools:
+
+- get_sla_requirements()
+- predict_breach_risk()
+
+7. Cost Optimization MCP Server
+
+Tools:
+
+- estimate_assignment_cost()
+- compare_assignment_options()
+
+8. Project Management MCP Server
+
+Tools:
+
+- get_project_details()
+- get_project_status()
+- get_task_information()
+
+9. Analytics MCP Server
+
+Tools:
+
+- find_similar_tasks()
+- recommend_best_resource()
+- generate_utilization_metrics()
+
+The architecture should allow additional MCP Servers to be added without impacting existing components.
+
+=================================================
+MULTI-AGENT ARCHITECTURE
+=================================================
+
+The implementation should demonstrate practical Multi-Agent orchestration.
+
+=================================================
+AGENT 1: DOCUMENT ANALYSIS AGENT
+=================================================
+
+Responsibilities:
+
+- Read uploaded documents
+- Extract requirements
+- Extract tasks
+- Extract skills
+- Extract priorities
+
+LLM Call Required: Yes
+
+=================================================
+AGENT 2: DATA CLEANSING AGENT
+=================================================
+
+Responsibilities:
+
+- Normalize extracted data
+- Remove inconsistencies
+- Validate information
+- Standardize formats
+
+LLM Call Required: Yes
+
+=================================================
+AGENT 3: DATA ENRICHMENT AGENT
+=================================================
+
+Responsibilities:
+
+- Enrich tasks with contextual information
+- Add metadata
+- Add domain-specific insights
+- Expand task understanding
+
+LLM Call Required: Yes
+
+=================================================
+AGENT 4: TASK CLASSIFICATION AGENT
+=================================================
+
+Responsibilities:
+
+- Determine task category
+- Determine complexity
+- Estimate effort
+- Determine priority
+
+LLM Call Required: Yes
+
+=================================================
+AGENT 5: RESOURCE MATCHING AGENT
+=================================================
+
+Responsibilities:
+
+- Match resource skills
+- Calculate matching scores
+- Rank resources
+- Recommend optimal resources
+
+Uses MCP:
+
+- Resource Server
+- Skill Server
+
+=================================================
+AGENT 6: WORKLOAD OPTIMIZATION AGENT
+=================================================
+
+Responsibilities:
+
+- Analyze utilization
+- Detect overloaded resources
+- Suggest alternate assignments
+- Balance workload
+
+Uses MCP:
+
+- Resource Server
+- Analytics Server
+
+=================================================
+AGENT 7: COST OPTIMIZATION AGENT
+=================================================
+
+Responsibilities:
+
+- Estimate execution cost
+- Compare options
+- Optimize assignment cost
+
+Uses MCP:
+
+- Cost MCP Server
+
+=================================================
+AGENT 8: RISK AND SLA AGENT
+=================================================
+
+Responsibilities:
+
+- Predict SLA risks
+- Predict delivery delays
+- Predict quality risks
+- Recommend mitigations
+
+Uses MCP:
+
+- SLA MCP Server
+- Performance MCP Server
+
+=================================================
+AGENT 9: DECISION AGENT
+=================================================
+
+Responsibilities:
+
+- Consolidate outputs from all agents
+- Evaluate recommendations
+- Select optimal routing strategy
+- Generate final assignment recommendation
+
+LLM Call Required: Yes
+
+=================================================
+AGENT 10: SUMMARY AGENT
+=================================================
+
+Responsibilities:
+
+- Generate executive summary
+- Generate detailed explanation
+- Generate business justification
+- Generate final user response
+
+LLM Call Required: Yes
+
+=================================================
+MULTIPLE LLM CALL STRATEGY
+=================================================
+
+LLM Call 1
+
+Document Analysis
+
+Purpose:
+
+- Extract requirements
+- Extract tasks
+
+LLM Call 2
+
+Data Cleansing
+
+Purpose:
+
+- Normalize extracted information
+
+LLM Call 3
+
+Data Enrichment
+
+Purpose:
+
+- Context enrichment
+- Metadata generation
+
+LLM Call 4
+
+Task Classification
+
+Purpose:
+
+- Classify tasks
+- Estimate complexity
+
+LLM Call 5
+
+Decision Agent
+
+Purpose:
+
+- Generate routing strategy
+
+LLM Call 6
+
+Summary Agent
+
+Purpose:
+
+- Generate final report
+
+LLM Call 7
+
+Chat Assistant
+
+Purpose:
+
+- Ongoing user interaction
+
+=================================================
+RAG UTILIZATION
+=================================================
+
+Admin Portal should support:
+
+- Policy Upload
+- Knowledge Base Upload
+- SOP Upload
+- Business Rule Upload
+- Reference Documents Upload
+
+Documents should be:
+
+- Chunked
+- Embedded
+- Indexed
+- Stored in the Vector Database
+
+RAG should provide contextual information during analysis.
+
+=================================================
+EXPERT ANALYSIS REPOSITORY
+=================================================
+
+Admin users should be able to upload:
+
+- Historical Assignment Recommendations
+- Expert Routing Decisions
+- Best Practices
+- Lessons Learned
+- Industry Guidance
+
+Store all structured information in SQLite.
+
+=================================================
+CHAT ASSISTANT
+=================================================
+
+After analysis is complete, provide a context-aware AI Chat Assistant.
+
+The Chat Assistant should be able to utilize:
+
+- Generated Analysis
+- Agent Outputs
+- RAG Context
+- Expert Analysis Repository
+- MCP Tools
+- Internal Enterprise APIs
+
+Support:
+
+- Follow-up Questions
+- Recommendations
+- Explanations
+- Assignment Justifications
+
+=================================================
+OCR SUPPORT
+=================================================
+
+Allow image upload within chat and analysis workflows.
+
+Capabilities:
+
+- OCR Text Extraction
+- Table Extraction
+- Requirement Extraction
+- Context Injection
+
+=================================================
+VOICE SUPPORT
+=================================================
+
+Provide:
+
+- Speech-to-Text
+- Text-to-Speech
+- Voice-Based Chat
+
+=================================================
+EXPECTED FINAL OUTPUT
+=================================================
+
+The final AI-generated report should include:
+
+- Extracted Tasks
+- Task Categories
+- Complexity Assessment
+- Required Skills
+- Recommended AI Agents
+- Recommended Human Resources
+- Assignment Confidence Score
+- Skill Match Score
+- Workload Analysis
+- Resource Utilization
+- Cost Estimates
+- Cost Optimization Suggestions
+- Quality Prediction
+- SLA Compliance Assessment
+- Risk Assessment
+- Escalation Recommendations
+- Reassignment Suggestions
+- Routing Justification
+- Executive Summary
+- Detailed Recommendations
+
+=================================================
+FUTURE EXTENSIBILITY
+=================================================
+
+The architecture should remain generic and reusable.
+
+Future integrations may include:
+
+- Jira
+- Azure DevOps
+- ServiceNow
+- GitHub
+- Salesforce
+- SAP
+- Internal Enterprise Platforms
+
+These systems should be integrated through MCP Servers or Adapter Layers without impacting:
+
+- UI
+- Agent Layer
+- MCP Layer
+- Business Logic
+- RAG Layer
+- Chat Layer
+
+The solution should demonstrate a modern enterprise architecture combining:
+
+- Angular
+- Flask
+- SQLite
+- RAG
+- MCP
+- Multi-Agent AI
+- Internal APIs
+- OCR
+- Voice AI
+- Multiple LLM Calls
+- Chat Assistant
+
+while remaining adaptable to future hackathon use cases and enterprise implementations.
+Feel free to explore creative solutions that align with the problem context and objectives. https://genailab.tcs.in/ has the swagger apis for using different AI options. Please generate the implementaion plan I can use in copilot of visual studio code for generating entire solution.
