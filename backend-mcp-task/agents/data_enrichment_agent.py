@@ -6,6 +6,8 @@ from agents import Agent
 from typing import Dict, Any, List
 import json
 
+_rag_service = None
+
 class DataEnrichmentAgent(Agent):
     """
     Enriches task data with additional context from RAG knowledge base.
@@ -59,9 +61,29 @@ class DataEnrichmentAgent(Agent):
     def enrich_task(self, task: Dict) -> Dict:
         """Enrich a single task with additional context"""
         
+        # Search RAG knowledge base for relevant context
+        global _rag_service
+        if _rag_service is None:
+            try:
+                from rag_service import RAGService
+                _rag_service = RAGService()
+            except Exception as e:
+                self.log(f"Failed to initialize RAGService: {str(e)}")
+                
+        rag_context = ""
+        if _rag_service:
+            try:
+                query = f"{task.get('task_name')} {task.get('description')} {task.get('skills_required')}"
+                rag_results = _rag_service.search_knowledge(query, top_k=3)
+                if rag_results:
+                    rag_context = "\nContext retrieved from Corporate Knowledge Base:\n" + \
+                                  "\n".join([f"- [{res['category']}] {res['content']}" for res in rag_results])
+            except Exception as e:
+                self.log(f"RAG search failed during enrichment: {str(e)}")
+            
         # Use LLM to add context and expand understanding
         system_prompt = """You are a technical project expert. Enrich the given task with additional context and metadata.
-
+        
 Add the following enrichments:
 1. Expand abbreviated terms in the description
 2. Add technical context about the skills required
@@ -80,6 +102,7 @@ Return a JSON object with the original task fields plus:
         user_message = f"""Enrich this task with additional context:
 
 {task_json}
+{rag_context}
 
 Add meaningful context that would help in resource assignment."""
         
@@ -110,8 +133,11 @@ Add meaningful context that would help in resource assignment."""
         """Basic enrichment without LLM"""
         enriched = task.copy()
         
-        # Infer domain category from skills
-        skills = task.get('skills_required', '').lower()
+        skills_raw = task.get('skills_required', '')
+        if isinstance(skills_raw, list):
+            skills = " ".join([str(s) for s in skills_raw]).lower()
+        else:
+            skills = str(skills_raw).lower()
         
         if any(word in skills for word in ['python', 'java', 'backend', 'api', 'database']):
             domain = 'Backend Development'

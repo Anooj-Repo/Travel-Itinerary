@@ -74,7 +74,20 @@ class Agent:
             response.raise_for_status()
             
             result = response.json()
-            return result['choices'][0]['message']['content']
+            content = result['choices'][0]['message']['content']
+            
+            # Clean content if response_format is json or if it looks like markdown json
+            if response_format == 'json' or (content and content.strip().startswith('```')):
+                cleaned = content.strip()
+                if cleaned.startswith('```json'):
+                    cleaned = cleaned[7:]
+                elif cleaned.startswith('```'):
+                    cleaned = cleaned[3:]
+                if cleaned.endswith('```'):
+                    cleaned = cleaned[:-3]
+                content = cleaned.strip()
+                
+            return content
         
         except Exception as e:
             print(f"[{self.name}] LLM call failed: {str(e)}")

@@ -9,12 +9,12 @@ from typing import List, Dict
 # Create MCP server instance
 skill_server = MCPServer("skill", "Skill Repository Server")
 
-def search_skills(query: str) -> List[Dict]:
+def search_skills(query) -> List[Dict]:
     """
     Search for resources with specific skills
     
     Args:
-        query: Skill search query (comma-separated or single skill)
+        query: Skill search query (comma-separated, list, or single skill)
     
     Returns:
         List of resources matching the skill query
@@ -23,7 +23,12 @@ def search_skills(query: str) -> List[Dict]:
     cursor = conn.cursor()
     
     # Normalize query
-    skills = [s.strip().lower() for s in query.split(',')]
+    if isinstance(query, str):
+        skills = [s.strip().lower() for s in query.split(',')]
+    elif isinstance(query, (list, set)):
+        skills = [str(s).strip().lower() for s in query]
+    else:
+        skills = []
     
     resources = []
     
@@ -57,12 +62,12 @@ def search_skills(query: str) -> List[Dict]:
     conn.close()
     return resources
 
-def match_skills(required_skills: str) -> List[Dict]:
+def match_skills(required_skills) -> List[Dict]:
     """
     Match required skills against available resources and calculate match scores
     
     Args:
-        required_skills: Comma-separated list of required skills
+        required_skills: Comma-separated list or list/set of required skills
     
     Returns:
         List of resources with match scores (0-100)
@@ -71,8 +76,13 @@ def match_skills(required_skills: str) -> List[Dict]:
     cursor = conn.cursor()
     
     # Parse required skills
-    required = set([s.strip().lower() for s in required_skills.split(',')])
-    
+    if isinstance(required_skills, str):
+        required = set([s.strip().lower() for s in required_skills.split(',')])
+    elif isinstance(required_skills, (list, set)):
+        required = set([str(s).strip().lower() for s in required_skills])
+    else:
+        required = set()
+        
     matches = []
     
     # Match human resources
