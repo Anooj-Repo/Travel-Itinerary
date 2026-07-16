@@ -178,6 +178,20 @@ Select the BEST resource considering all factors. Critical and High priority tas
                     "risk_level": r.get('risk_level', 'Low')
                 })
                 
+            # Safe parsing of resource_id and confidence_score
+            try:
+                res_id = int(decision.get('recommended_resource_id', 0) or 0)
+            except (ValueError, TypeError):
+                res_id = 0
+                
+            try:
+                raw_conf = decision.get('confidence_score', 80)
+                if isinstance(raw_conf, str) and '%' in raw_conf:
+                    raw_conf = raw_conf.replace('%', '')
+                confidence_score = int(raw_conf or 80)
+            except (ValueError, TypeError):
+                confidence_score = 80
+                
             recommended_cost = cost_data.get('best_value', {}).get('total_cost', 0.0)
             
             return {
@@ -188,10 +202,10 @@ Select the BEST resource considering all factors. Critical and High priority tas
                 "estimated_effort": task.get('estimated_effort', 8),
                 "skills_required": skills_list,
                 "recommended_resource": {
-                    "resource_id": int(decision.get('recommended_resource_id', 0) or 0),
+                    "resource_id": res_id,
                     "name": decision.get('recommended_resource_name', 'Unknown'),
                     "type": decision.get('recommended_resource_type', 'human'),
-                    "confidence_score": int(decision.get('confidence_score', 80) or 80),
+                    "confidence_score": confidence_score,
                     "reasoning": decision.get('reasoning', '')
                 },
                 "resource_options": frontend_resource_options,
