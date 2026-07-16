@@ -76,27 +76,23 @@ class DecisionAgent(Agent):
             "category": task.get('category')
         }
         
+        task_name = task.get('task_name')
+        
         # Get resource recommendations
         resource_matching = context.get('ResourceMatchingAgent', {})
         task_recommendations = resource_matching.get('task_recommendations', [])
-        resource_options = []
-        if task_index < len(task_recommendations):
-            matched_resources = task_recommendations[task_index].get('matched_resources', [])
-            resource_options = matched_resources[:5]  # Top 5 options
+        matched_rec = next((r for r in task_recommendations if r.get('task_name') == task_name), None)
+        resource_options = matched_rec.get('matched_resources', [])[:5] if matched_rec else []
         
         # Get cost analysis
         cost_optimization = context.get('CostOptimizationAgent', {})
         task_cost_analyses = cost_optimization.get('task_cost_analysis', [])
-        cost_data = {}
-        if task_index < len(task_cost_analyses):
-            cost_data = task_cost_analyses[task_index]
+        cost_data = next((c for c in task_cost_analyses if c.get('task_name') == task_name), {})
         
         # Get risk analysis
         risk_sla = context.get('RiskSLAAgent', {})
         task_risk_analyses = risk_sla.get('task_risk_analyses', [])
-        risk_data = {}
-        if task_index < len(task_risk_analyses):
-            risk_data = task_risk_analyses[task_index]
+        risk_data = next((r for r in task_risk_analyses if r.get('task_name') == task_name), {})
         
         # Get workload insights
         workload_optimization = context.get('WorkloadOptimizationAgent', {})
@@ -156,22 +152,78 @@ Select the BEST resource considering all factors. Critical and High priority tas
         try:
             decision = json.loads(llm_response)
             
-            # Merge decision with original data
+            skills_raw = task.get('skills_required', '')
+            if isinstance(skills_raw, list):
+                skills_list = [str(s).strip() for s in skills_raw if str(s).strip()]
+            elif isinstance(skills_raw, str):
+                skills_list = [s.strip() for s in skills_raw.split(',') if s.strip()]
+            else:
+                skills_list = []
+            
+            frontend_resource_options = []
+            for r in resource_options:
+                frontend_resource_options.append({
+                    "resource_id": r.get('resource_id', r.get('id', 0)),
+                    "resource_name": r.get('name', 'Unknown'),
+                    "resource_type": r.get('type', 'human'),
+                    "match_score": r.get('match_score', 0),
+                    "skill_match": r.get('skill_match', []),
+                    "missing_skills": r.get('missing_skills', []),
+                    "availability": r.get('availability', 'Available'),
+                    "current_workload": r.get('current_workload', 0),
+                    "cost_per_hour": r.get('cost_per_hour', 0.0),
+                    "estimated_cost": r.get('estimated_cost', 0.0),
+                    "quality_score": r.get('quality_score', 0),
+                    "sla_compliance": r.get('sla_compliance', 0),
+                    "risk_level": r.get('risk_level', 'Low')
+                })
+                
+            # Safe parsing of resource_id and confidence_score
+            try:
+                res_id = int(decision.get('recommended_resource_id', 0) or 0)
+            except (ValueError, TypeError):
+                res_id = 0
+                
+            try:
+                raw_conf = decision.get('confidence_score', 80)
+                if isinstance(raw_conf, str) and '%' in raw_conf:
+                    raw_conf = raw_conf.replace('%', '')
+                confidence_score = int(raw_conf or 80)
+            except (ValueError, TypeError):
+                confidence_score = 80
+                
+            recommended_cost = cost_data.get('best_value', {}).get('total_cost', 0.0)
+            
             return {
-                **task_data,
                 "task_id": task.get('task_id', task_index + 1),
+                "task_name": task.get('task_name'),
+                "task_description": task.get('description', ''),
+                "complexity": task.get('complexity', 'Medium'),
+                "estimated_effort": task.get('estimated_effort', 8),
+                "skills_required": skills_list,
                 "recommended_resource": {
-                    "name": decision.get('recommended_resource_name'),
-                    "type": decision.get('recommended_resource_type'),
-                    "id": decision.get('recommended_resource_id')
+                    "resource_id": res_id,
+                    "name": decision.get('recommended_resource_name', 'Unknown'),
+                    "type": decision.get('recommended_resource_type', 'human'),
+                    "confidence_score": confidence_score,
+                    "reasoning": decision.get('reasoning', '')
                 },
-                "alternative_resource": decision.get('alternative_resource'),
-                "confidence_score": decision.get('confidence_score', 70),
-                "reasoning": decision.get('reasoning', ''),
-                "key_factors": decision.get('key_factors', []),
-                "cost_estimate": cost_data.get('best_value', {}).get('total_cost', 0),
-                "risk_level": risk_data.get('overall_risk_level', 'Unknown'),
-                "decision_timestamp": "2026-07-10"
+                "resource_options": frontend_resource_options,
+                "cost_analysis": {
+                    "recommended_cost": recommended_cost,
+                    "cheapest_cost": cost_data.get('cheapest_option', {}).get('total_cost', recommended_cost),
+                    "premium_cost": cost_data.get('premium_option', {}).get('total_cost', recommended_cost),
+                    "potential_savings": cost_data.get('potential_savings', 0.0)
+                },
+                "risk_assessment": {
+                    "risk_level": risk_data.get('overall_risk_level', 'Low'),
+                    "risk_factors": risk_data.get('risk_factors', []),
+                    "mitigation_strategies": risk_data.get('mitigation_recommendations', [])
+                },
+                "sla_compliance": {
+                    "expected_completion": "2026-07-18",
+                    "sla_breach_risk": risk_data.get('breach_risk', {}).get('breach_probability', 10.0)
+                }
             }
         
         except json.JSONDecodeError as e:
@@ -180,26 +232,68 @@ Select the BEST resource considering all factors. Critical and High priority tas
             return self.fallback_decision(task, task_index, resource_options, cost_data, risk_data)
     
     def fallback_decision(self, task: Dict, task_index: int, resource_options: List, cost_data: Dict, risk_data: Dict) -> Dict:
-        """Simple fallback decision logic"""
-        
-        # Pick highest skill match with good workload
+        """Simple fallback decision logic matching frontend schema"""
         best_resource = resource_options[0] if resource_options else {}
         
+        skills_raw = task.get('skills_required', '')
+        if isinstance(skills_raw, list):
+            skills_list = [str(s).strip() for s in skills_raw if str(s).strip()]
+        elif isinstance(skills_raw, str):
+            skills_list = [s.strip() for s in skills_raw.split(',') if s.strip()]
+        else:
+            skills_list = []
+        
+        frontend_resource_options = []
+        for r in resource_options:
+            frontend_resource_options.append({
+                "resource_id": r.get('resource_id', r.get('id', 0)),
+                "resource_name": r.get('name', 'Unknown'),
+                "resource_type": r.get('type', 'human'),
+                "match_score": r.get('match_score', 0),
+                "skill_match": r.get('skill_match', []),
+                "missing_skills": r.get('missing_skills', []),
+                "availability": r.get('availability', 'Available'),
+                "current_workload": r.get('current_workload', 0),
+                "cost_per_hour": r.get('cost_per_hour', 0.0),
+                "estimated_cost": r.get('estimated_cost', 0.0),
+                "quality_score": r.get('quality_score', 0),
+                "sla_compliance": r.get('sla_compliance', 0),
+                "risk_level": r.get('risk_level', 'Low')
+            })
+            
+        recommended_cost = cost_data.get('best_value', {}).get('total_cost', 0.0)
+        if recommended_cost == 0.0 and best_resource:
+            recommended_cost = best_resource.get('cost_per_hour', 50) * task.get('estimated_effort', 8)
+            
         return {
-            "task_id": task.get('task_id', task_index + 1),
             "task_name": task.get('task_name'),
-            "complexity": task.get('complexity'),
-            "priority": task.get('priority'),
+            "task_description": task.get('description', ''),
+            "complexity": task.get('complexity', 'Medium'),
+            "estimated_effort": task.get('estimated_effort', 8),
+            "skills_required": skills_list,
             "recommended_resource": {
+                "resource_id": best_resource.get('resource_id', 0),
                 "name": best_resource.get('name', 'Unknown'),
                 "type": best_resource.get('type', 'human'),
-                "id": best_resource.get('resource_id', 0)
+                "confidence_score": 60,
+                "reasoning": "Fallback decision based on skill match"
             },
-            "confidence_score": 60,
-            "reasoning": "Fallback decision based on skill match",
-            "key_factors": ["Skill Match"],
-            "cost_estimate": cost_data.get('best_value', {}).get('total_cost', 0),
-            "risk_level": risk_data.get('overall_risk_level', 'Unknown')
+            "resource_options": frontend_resource_options,
+            "cost_analysis": {
+                "recommended_cost": recommended_cost,
+                "cheapest_cost": cost_data.get('cheapest_option', {}).get('total_cost', recommended_cost),
+                "premium_cost": cost_data.get('premium_option', {}).get('total_cost', recommended_cost),
+                "potential_savings": cost_data.get('potential_savings', 0.0)
+            },
+            "risk_assessment": {
+                "risk_level": risk_data.get('overall_risk_level', 'Low'),
+                "risk_factors": risk_data.get('risk_factors', []),
+                "mitigation_strategies": risk_data.get('mitigation_recommendations', [])
+            },
+            "sla_compliance": {
+                "expected_completion": "2026-07-18",
+                "sla_breach_risk": risk_data.get('breach_risk', {}).get('breach_probability', 10.0)
+            }
         }
     
     def generate_decision_summary(self, decisions: List[Dict]) -> Dict:
@@ -209,13 +303,13 @@ Select the BEST resource considering all factors. Critical and High priority tas
         ai_assignments = len([d for d in decisions if d.get('recommended_resource', {}).get('type') == 'ai'])
         human_assignments = total - ai_assignments
         
-        high_confidence = len([d for d in decisions if d.get('confidence_score', 0) >= 80])
-        medium_confidence = len([d for d in decisions if 60 <= d.get('confidence_score', 0) < 80])
-        low_confidence = len([d for d in decisions if d.get('confidence_score', 0) < 60])
+        high_confidence = len([d for d in decisions if d.get('recommended_resource', {}).get('confidence_score', 0) >= 80])
+        medium_confidence = len([d for d in decisions if 60 <= d.get('recommended_resource', {}).get('confidence_score', 0) < 80])
+        low_confidence = len([d for d in decisions if d.get('recommended_resource', {}).get('confidence_score', 0) < 60])
         
-        high_risk_assignments = len([d for d in decisions if d.get('risk_level') == 'High'])
+        high_risk_assignments = len([d for d in decisions if d.get('risk_assessment', {}).get('risk_level') == 'High'])
         
-        total_cost = sum([d.get('cost_estimate', 0) for d in decisions])
+        total_cost = sum([d.get('cost_analysis', {}).get('recommended_cost', 0) for d in decisions])
         
         return {
             "total_tasks": total,
@@ -232,5 +326,5 @@ Select the BEST resource considering all factors. Critical and High priority tas
             },
             "high_risk_assignments": high_risk_assignments,
             "total_estimated_cost": round(total_cost, 2),
-            "average_confidence": round(sum([d.get('confidence_score', 0) for d in decisions]) / total if total > 0 else 0, 2)
+            "average_confidence": round(sum([d.get('recommended_resource', {}).get('confidence_score', 0) for d in decisions]) / total if total > 0 else 0, 2)
         }

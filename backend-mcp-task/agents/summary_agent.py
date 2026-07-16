@@ -147,8 +147,8 @@ RISK ASSESSMENT: {high_risk} tasks have been identified as high-risk, requiring 
 
 RECOMMENDATIONS: Immediate action is recommended for high-priority tasks. Cost optimization opportunities of ${data.get('cost_savings_potential', 0):.2f} have been identified through strategic resource allocation."""
     
-    def generate_detailed_recommendations(self, context: Dict[str, Any]) -> List[Dict]:
-        """Generate detailed actionable recommendations"""
+    def generate_detailed_recommendations(self, context: Dict[str, Any]) -> List[str]:
+        """Generate detailed actionable recommendations as a list of strings matching frontend schema"""
         
         recommendations = []
         
@@ -159,46 +159,38 @@ RECOMMENDATIONS: Immediate action is recommended for high-priority tasks. Cost o
         # High-priority tasks
         high_priority_tasks = [d for d in final_decisions if d.get('priority') in ['Critical', 'High']]
         if high_priority_tasks:
-            recommendations.append({
-                "category": "High Priority Tasks",
-                "priority": "Critical",
-                "recommendation": f"Immediate action required for {len(high_priority_tasks)} critical/high priority tasks",
-                "details": [f"{t.get('task_name')}: Assign to {t.get('recommended_resource', {}).get('name')}" for t in high_priority_tasks[:3]]
-            })
+            recommendations.append(
+                f"Critical Task Priority: Assign critical tasks immediately. Recommended path: " +
+                "; ".join([f"assign '{t.get('task_name')}' to {t.get('recommended_resource', {}).get('name')}" for t in high_priority_tasks[:3]])
+            )
         
         # Risk-based recommendations
         risk_sla = context.get('RiskSLAAgent', {})
         high_risk_tasks = [r for r in risk_sla.get('task_risk_analyses', []) if r.get('overall_risk_level') == 'High']
         if high_risk_tasks:
-            recommendations.append({
-                "category": "Risk Management",
-                "priority": "High",
-                "recommendation": f"{len(high_risk_tasks)} tasks identified with high SLA or quality risks",
-                "details": high_risk_tasks[0].get('mitigation_recommendations', []) if high_risk_tasks else []
-            })
+            recommendations.append(
+                f"Risk Management: {len(high_risk_tasks)} tasks have high SLA or quality risk. " +
+                "Mitigation: Implement daily status updates and prioritize senior peer reviews."
+            )
         
         # Cost optimization recommendations
         cost_optimization = context.get('CostOptimizationAgent', {})
         cost_savings = cost_optimization.get('cost_optimization_potential', 0)
         if cost_savings > 0:
-            recommendations.append({
-                "category": "Cost Optimization",
-                "priority": "Medium",
-                "recommendation": f"Potential cost savings of ${cost_savings:.2f} through optimal resource selection",
-                "details": ["Review AI agent assignments for low-complexity tasks", "Consider underutilized resources for cost efficiency"]
-            })
+            recommendations.append(
+                f"Cost Optimization: Potential savings of ${cost_savings:.2f} identified. " +
+                "Action: Leverage specialized AI agents (e.g. MobileUX AI or TestGen AI) for lower-complexity tasks."
+            )
         
         # Workload recommendations
         workload_optimization = context.get('WorkloadOptimizationAgent', {})
         workload_recs = workload_optimization.get('optimization_recommendations', [])
         if workload_recs:
             for rec in workload_recs[:2]:
-                recommendations.append({
-                    "category": "Workload Optimization",
-                    "priority": rec.get('priority', 'Medium'),
-                    "recommendation": rec.get('message', ''),
-                    "details": rec.get('alternative_resources', []) or rec.get('overloaded_resources', [])
-                })
+                recommendations.append(f"Resource Workload: {rec.get('message', '')}")
+                
+        if not recommendations:
+            recommendations.append("All tasks routed optimally. Monitor resource utilization to ensure balanced workload.")
         
         return recommendations
     

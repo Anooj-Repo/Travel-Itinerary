@@ -2,6 +2,8 @@ import requests
 import urllib3
 import os
 import json
+from datetime import datetime
+
 
 # Disable SSL verification warnings
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -16,8 +18,11 @@ from flask_jwt_extended import JWTManager
 from werkzeug.utils import secure_filename
 from config import Config
 import database
+from rag_service import RAGService
 
 app = Flask(__name__)
+rag_service = RAGService()
+
 
 # JWT Configuration
 app.config['JWT_SECRET_KEY'] = Config.JWT_SECRET_KEY
@@ -254,6 +259,327 @@ def add_expert_analysis():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+# Chat Session Store
+chat_sessions = {}
+
+def build_chat_context():
+    """Compiles SQLite database tables into a compact text context for the Chat LLM"""
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        
+        # 1. Fetch human resources
+        cursor.execute("SELECT * FROM human_resources")
+        resources = [dict(row) for row in cursor.fetchall()]
+        
+        # 2. Fetch AI agents
+        cursor.execute("SELECT * FROM ai_agents")
+        agents = [dict(row) for row in cursor.fetchall()]
+        
+        # 3. Fetch tasks
+        cursor.execute("SELECT * FROM tasks")
+        tasks = [dict(row) for row in cursor.fetchall()]
+        
+        # 4. Fetch recent routing decisions
+        cursor.execute("""
+            SELECT rd.*, t.task_name, t.complexity, t.priority
+            FROM routing_decisions rd
+            JOIN tasks t ON rd.task_id = t.task_id
+            ORDER BY rd.created_at DESC
+            LIMIT 20
+        """)
+        decisions = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        
+        context_str = "CURRENT ROUTING STATUS:\n"
+        context_str += "--- HUMAN TEAM ---\n"
+        for r in resources:
+            context_str += f"- {r['name']} ({r['role']}): Skills=[{r['skills']}], Experience={r['experience']} yrs, Cost=${r['cost_per_hour']}/hr, Availability={r['availability']}, Workload={r['current_workload']}%\n"
+            
+        context_str += "\n--- AI TEAM ---\n"
+        for a in agents:
+            context_str += f"- {a['agent_name']} (Specialization: {a['specialization']}): Capabilities=[{a['capabilities']}], Cost=${a['cost_per_hour']}/hr, Availability={a['availability']}\n"
+            
+        context_str += "\n--- PROJECTS & TASKS ---\n"
+        for t in tasks:
+            context_str += f"- Task #{t['task_id']}: {t['task_name']} | Complexity={t['complexity']} | Priority={t['priority']} | Status={t['status']} | Skills Required=[{t['skills_required']}]\n"
+            
+        context_str += "\n--- ASSIGNMENTS DECISIONS ---\n"
+        for d in decisions:
+            selected = json.loads(d['selected_resource']) if d['selected_resource'] else {}
+            context_str += f"- Task '{d['task_name']}': Assigned to {selected.get('name')} ({selected.get('type', 'human')}) | Confidence={d['confidence_score']}% | Reason: {d['recommendation_reason']}\n"
+            
+        return context_str
+    except Exception as e:
+        return f"Error retrieving state context: {str(e)}"
+
+# Chat Endpoints
+@app.route('/api/chat/start', methods=['POST'])
+def start_chat_session():
+    try:
+        import uuid
+        session_id = str(uuid.uuid4())
+        chat_sessions[session_id] = []
+        return jsonify({
+            "success": True,
+            "session_id": session_id
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/chat/message', methods=['POST'])
+def send_chat_message():
+    try:
+        data = request.get_json() or {}
+        session_id = data.get('session_id')
+        message = data.get('message', '')
+        
+        if not session_id:
+            return jsonify({"success": False, "error": "No session_id provided"}), 400
+            
+        if session_id not in chat_sessions:
+            chat_sessions[session_id] = []
+            
+        history = chat_sessions[session_id]
+        history.append({
+            "role": "user",
+            "content": message,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        # Build LLM context from DB state
+        system_context = build_chat_context()
+        
+        # Retrieve relevant policies from RAG
+        rag_context = ""
+        try:
+            rag_results = rag_service.search_knowledge(message, top_k=3)
+            if rag_results:
+                rag_context = "\n--- RELEVANT POLICIES (RAG) ---\n" + \
+                              "\n".join([f"- [{res['category']}] {res['content']}" for res in rag_results])
+        except Exception as e:
+            print("RAG search failed in chat:", e)
+            
+        system_prompt = f"""You are a helpful project routing assistant for the Intelligent Task Routing System.
+Using the current state context and corporate policies below, answer the user's questions about resources, assignments, task complexities, risks, or costs.
+
+{system_context}
+{rag_context}
+
+Be concise, helpful, and reference resources or tasks by name where appropriate. If asked about policies, refer to the uploaded RAG documents."""
+
+        from agents import Agent
+        dummy_agent = Agent("ChatAssistantAgent", "Handles chat requests")
+        llm_response = dummy_agent.call_llm(system_prompt, message, temperature=0.5)
+        
+        history.append({
+            "role": "assistant",
+            "content": llm_response,
+            "timestamp": datetime.now().isoformat()
+        })
+        
+        return jsonify({
+            "success": True,
+            "response": llm_response,
+            "tool_calls": []
+        }), 200
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/chat/history/<session_id>', methods=['GET'])
+def get_chat_history(session_id):
+    history = chat_sessions.get(session_id, [])
+    return jsonify({
+        "success": True,
+        "messages": history
+    }), 200
+
+@app.route('/api/chat/session/<session_id>', methods=['DELETE'])
+def clear_chat_session(session_id):
+    if session_id in chat_sessions:
+        del chat_sessions[session_id]
+    return jsonify({
+        "success": True,
+        "message": f"Session {session_id} cleared successfully"
+    }), 200
+
+
+# RAG Admin Endpoints
+@app.route('/api/admin/rag/stats', methods=['GET'])
+def get_rag_stats():
+    try:
+        stats = rag_service.get_rag_statistics()
+        return jsonify({
+            "success": True,
+            "stats": stats
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin/rag/upload', methods=['POST'])
+def upload_to_rag():
+    try:
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "No file uploaded"}), 400
+            
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"}), 400
+            
+        filename = secure_filename(file.filename)
+        file_content = file.read()
+        
+        # Determine uploader identity
+        try:
+            from flask_jwt_extended import get_jwt_identity, verify_jwt_in_request
+            verify_jwt_in_request(optional=True)
+            identity = get_jwt_identity() or "admin"
+        except:
+            identity = "admin"
+            
+        metadata = {
+            "filename": filename,
+            "upload_date": datetime.now().isoformat(),
+            "uploaded_by": identity,
+            "file_type": filename.rsplit('.', 1)[1].lower() if '.' in filename else 'unknown',
+            "category": "Policy"
+        }
+        
+        result = rag_service.add_document_to_rag(file_content, filename, metadata)
+        if result.get("success"):
+            return jsonify(result), 200
+        return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin/rag/reload-news', methods=['POST'])
+def reload_market_news():
+    try:
+        result = rag_service.load_market_news()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+# Admin Expert Analysis Endpoints
+@app.route('/api/admin/expert-analysis', methods=['GET'])
+def get_all_expert_analysis_admin():
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM expert_analysis ORDER BY created_at DESC")
+        analyses = []
+        for row in cursor.fetchall():
+            analyses.append({
+                "id": row['id'],
+                "key": f"{row['category']} - {row['expert_name']}",
+                "data": f"{row['recommendation']} ({row['notes']})",
+                "created_at": row['created_at'],
+                "updated_at": row['created_at']
+            })
+        conn.close()
+        return jsonify({"success": True, "analyses": analyses}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin/expert-analysis', methods=['POST'])
+def add_expert_analysis_admin():
+    try:
+        data = request.get_json() or {}
+        key = data.get('key', '')
+        data_text = data.get('data', '')
+        
+        category = "General"
+        expert_name = "Admin"
+        if " - " in key:
+            category, expert_name = key.split(" - ", 1)
+        else:
+            category = key
+            
+        recommendation = data_text
+        notes = "Added via Admin Portal"
+        if " (" in data_text and data_text.endswith(")"):
+            recommendation, notes = data_text.rsplit(" (", 1)
+            notes = notes[:-1]
+            
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO expert_analysis (category, recommendation, notes, expert_name)
+            VALUES (?, ?, ?, ?)
+        """, (category, recommendation, notes, expert_name))
+        conn.commit()
+        analysis_id = cursor.lastrowid
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": "Expert analysis added successfully",
+            "id": analysis_id
+        }), 201
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/admin/expert-analysis/<int:analysis_id>', methods=['DELETE'])
+def delete_expert_analysis_admin(analysis_id):
+    try:
+        conn = database.get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM expert_analysis WHERE id = ?", (analysis_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True, "message": "Expert analysis deleted successfully"}), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/knowledge/upload', methods=['POST'])
+def upload_knowledge():
+    """Upload and index corporate knowledge documents"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"success": False, "error": "No file provided"}), 400
+        
+        file = request.files['file']
+        category = request.form.get('category', 'General')
+        
+        if file.filename == '':
+            return jsonify({"success": False, "error": "No file selected"}), 400
+            
+        if not allowed_file(file.filename):
+            return jsonify({"success": False, "error": "Invalid file type"}), 400
+            
+        filename = secure_filename(file.filename)
+        file_content = file.read()
+        
+        result = rag_service.upload_document(file_content, filename, category)
+        if result["success"]:
+            return jsonify(result), 200
+        return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/api/knowledge/search', methods=['POST'])
+def search_knowledge():
+    """Search for relevant policies and rules"""
+    try:
+        data = request.get_json() or {}
+        query = data.get('query', '')
+        top_k = int(data.get('top_k', 5))
+        category = data.get('category', None)
+        
+        if not query:
+            return jsonify({"success": False, "error": "No query provided"}), 400
+            
+        results = rag_service.search_knowledge(query, top_k, category)
+        return jsonify({
+            "success": True,
+            "results": results
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 @app.route('/api/task-routing/analyze', methods=['POST'])
 def analyze_task_routing():
     """
@@ -365,15 +691,16 @@ def analyze_task_routing():
         # Store each task decision
         decisions = result_context.get('DecisionAgent', {}).get('final_decisions', [])
         for decision in decisions:
+            rec_res = decision.get('recommended_resource', {})
             cursor.execute("""
                 INSERT INTO routing_decisions 
                 (task_id, selected_resource, recommendation_reason, confidence_score, analysis_data, created_at)
                 VALUES (?, ?, ?, ?, ?, datetime('now'))
             """, (
                 decision.get('task_id', 0),
-                json.dumps(decision.get('recommended_resource', {})),
-                decision.get('reasoning', ''),
-                decision.get('confidence_score', 0),
+                json.dumps(rec_res),
+                rec_res.get('reasoning', ''),
+                rec_res.get('confidence_score', 0),
                 json.dumps(decision)
             ))
         

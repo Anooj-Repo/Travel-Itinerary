@@ -95,10 +95,13 @@ Return the cleansed data in the same structure."""
         """Apply basic validation rules"""
         validated = []
         
-        for task in tasks:
+        for i, task in enumerate(tasks):
             # Ensure required fields exist
             if 'task_name' not in task or not task['task_name']:
                 continue
+            
+            # Assign persistent task_id
+            task['task_id'] = i + 1
             
             # Normalize complexity
             complexity = task.get('complexity', 'Medium')
