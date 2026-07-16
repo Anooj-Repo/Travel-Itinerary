@@ -1,0 +1,188 @@
+<div class="dashboard-wrapper">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-logo">
+      <div class="logo-orb"></div>
+      <div class="title-meta">
+        <h1>KNOWLEDGE COMPASS</h1>
+        <span class="sub-title">Graph-based Multi-Hop Reasoning System</span>
+      </div>
+    </div>
+    <div class="header-badges">
+      <div class="status-badge active">
+        <span class="indicator-dot"></span>
+        TCS GenAI Lab Connected
+      </div>
+      <div class="status-badge model-spec">
+        Phi-4 & GPT-4o
+      </div>
+    </div>
+  </header>
+
+  <!-- Dashboard Content -->
+  <main class="dashboard-body">
+    
+    <!-- LEFT COLUMN: Inputs and Chat -->
+    <div class="column-left">
+      
+      <!-- Source Manager Card -->
+      <section class="glass-card source-card">
+        <div class="card-header">
+          <h3><span class="icon">📁</span> Document Source Manager</h3>
+        </div>
+        <div class="card-body">
+          <div class="upload-zone">
+            <input type="file" id="file-upload" class="file-input" (change)="onFileSelected($event)" accept=".txt,.pdf">
+            <label for="file-upload" class="upload-label">
+              <span class="upload-icon">📤</span>
+              <span class="upload-text">Select PDF or Text File</span>
+            </label>
+          </div>
+
+          <div class="slider-group" *ngIf="selectedFile">
+            <label>
+              Source Reliability Score: 
+              <span class="badge" [ngClass]="{'reliable': reliability >= 0.8, 'moderate': reliability < 0.8 && reliability >= 0.5, 'unreliable': reliability < 0.5}">
+                {{ reliability | number:'1.2-2' }}
+              </span>
+            </label>
+            <input type="range" min="0.1" max="1.0" step="0.05" [(ngModel)]="reliability" class="range-slider">
+          </div>
+
+          <button class="btn btn-primary btn-block" [disabled]="!selectedFile || isUploading" (click)="uploadDocument()">
+            <span class="spinner" *ngIf="isUploading"></span>
+            {{ isUploading ? 'Processing File...' : 'Upload & Construct Graph' }}
+          </button>
+
+          <p class="status-text" *ngIf="uploadStatus">{{ uploadStatus }}</p>
+
+          <!-- Uploaded Documents List -->
+          <div class="sources-list-section" *ngIf="documents.length > 0">
+            <h4>Uploaded Sources ({{ documents.length }})</h4>
+            <ul class="sources-list">
+              <li *ngFor="let doc of documents">
+                <span class="doc-name">📄 {{ doc.filename }}</span>
+                <span class="doc-meta">
+                  <span class="chunks-badge">{{ doc.chunks }} chunks</span>
+                  <span class="reliability-indicator" [style.background-color]="doc.reliability >= 0.8 ? '#10b981' : doc.reliability >= 0.5 ? '#f59e0b' : '#ef4444'"></span>
+                  {{ doc.reliability * 100 }}% rel.
+                </span>
+              </li>
+            </ul>
+            <button class="btn btn-danger btn-sm mt-2" (click)="clearGraph()">Wipe Knowledge Graph</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Graph Q&A Panel -->
+      <section class="glass-card qa-card">
+        <div class="card-header">
+          <h3><span class="icon">💬</span> Reasoning Q&A Console</h3>
+        </div>
+        <div class="card-body chat-container">
+          <div class="chat-messages">
+            <div class="message" *ngFor="let msg of chatHistory" [ngClass]="msg.type">
+              <div class="message-sender">
+                {{ msg.type === 'user' ? 'You' : 'Compass Engine' }}
+              </div>
+              <div class="message-content">
+                <p class="message-text">{{ msg.text }}</p>
+                
+                <!-- Confidence Score Sub-panel -->
+                <div class="meta-panel" *ngIf="msg.type === 'assistant' && msg.confidence !== undefined">
+                  <div class="metric">
+                    <span class="metric-label">Graph Confidence:</span>
+                    <span class="metric-value" [style.color]="msg.confidence >= 0.85 ? '#10b981' : msg.confidence >= 0.65 ? '#f59e0b' : '#ef4444'">
+                      {{ msg.confidence * 100 }}%
+                    </span>
+                  </div>
+                  <p class="justification-text"><strong>Justification:</strong> {{ msg.justification }}</p>
+                </div>
+
+                <!-- Trace reasoning paths step-by-step -->
+                <div class="path-panel" *ngIf="msg.type === 'assistant' && msg.reasoning && msg.reasoning.length > 0">
+                  <h5>Traversed Reasoning Path:</h5>
+                  <div class="hop-timeline">
+                    <div class="hop" *ngFor="let hop of msg.reasoning; let i = index">
+                      <span class="hop-number">{{ i + 1 }}</span>
+                      <span class="hop-text">{{ hop }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="message assistant loader" *ngIf="isQuerying">
+              <div class="message-sender">Compass Engine</div>
+              <div class="message-content">
+                <div class="query-spinner">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </div>
+                <p class="message-text">Tracing relationship links & querying Phi-4 reasoning model...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-input-area">
+            <textarea placeholder="Ask a question requiring multi-hop reasoning (e.g. How is entity A connected to entity C?)" 
+                      [(ngModel)]="queryText" 
+                      (keydown.enter)="$event.preventDefault(); submitQuery()" 
+                      [disabled]="isQuerying"
+                      class="chat-input"></textarea>
+            <button class="btn btn-primary send-btn" [disabled]="!queryText.trim() || isQuerying" (click)="submitQuery()">
+              <span>🔍</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Visualization -->
+    <div class="column-right">
+      
+      <!-- Interactive Graph Canvas -->
+      <section class="glass-card visualization-card">
+        <div class="card-header viz-header">
+          <div>
+            <h3><span class="icon">🕸️</span> Interactive Knowledge Graph</h3>
+            <p class="header-desc">Drag nodes to explore. Yellow outlines highlight the active reasoning path.</p>
+          </div>
+          <button class="btn btn-secondary btn-sm" (click)="resetZoom()">Reset Zoom</button>
+        </div>
+        
+        <div class="card-body viz-body">
+          <div #graphContainer class="canvas-container"></div>
+          
+          <!-- Node Legend -->
+          <div class="legend-panel">
+            <div class="legend-item" *ngFor="let type of nodeTypes">
+              <span class="legend-dot" [ngClass]="type.toLowerCase()"></span>
+              {{ type }}
+            </div>
+          </div>
+
+          <!-- Selection Details Panel -->
+          <div class="selection-panel" *ngIf="selectedNode">
+            <div class="panel-header">
+              <h4>Entity Properties</h4>
+              <button class="close-btn" (click)="selectedNode = null">×</button>
+            </div>
+            <div class="panel-body">
+              <p><strong>Label:</strong> {{ selectedNode.label }}</p>
+              <p><strong>Category:</strong> <span class="badge type-badge" [ngClass]="selectedNode.type.toLowerCase()">{{ selectedNode.type }}</span></p>
+              <p><strong>Node ID:</strong> <code>{{ selectedNode.id }}</code></p>
+              <p *ngIf="selectedNode.sources && selectedNode.sources.length > 0">
+                <strong>Linked Sources:</strong> 
+                <span class="source-badge" *ngFor="let src of selectedNode.sources">{{ src }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
