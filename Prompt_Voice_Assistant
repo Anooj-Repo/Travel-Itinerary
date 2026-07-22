@@ -1,0 +1,33 @@
+Generate a production-grade end-to-end web solution named "VoxChunk AI" for the hackathon problem statement: "Information Chunking and Comprehension Checking in Voice Assistants" (PAS 901 Compliant).
+
+Problem Context & Objectives:
+Lengthy, unsegmented speech responses (like complex insurance policies or legal disclaimers) cause information overload, cognitive fatigue, and low decision confidence (e.g. user Shreya receiving continuous policy text).
+
+Key Technical & Solution Requirements:
+1. Multi-Agent Orchestrator Architecture:
+   - Implement an Orchestrator Agent in Python Flask managing parallel specialized agents:
+     a) Chunking & Simplification Agent: Breaks dense text into 2-4 bite-sized cognitive chunks with key bullet points.
+     b) Comprehension Validation Agent: Generates micro-check-in prompts after each chunk ("Did this deductible make sense?"), evaluates user responses, and adapts pacing.
+     c) RAG Vector Agent: Indexes policy documents using FAISS vector store and TCS GenAI Embeddings (azure/genailab-maas-text-embedding-3-large) for semantic search before LLM call.
+     d) OCR Document Processing Agent: Uses PyTesseract/PIL/Vision model fallback to extract clean text from uploaded policy images/scans.
+     e) MCP (Model Context Protocol) SQLite Agent: Uses local SQLite database (voxchunk_mcp.db) to store documents, chunks, session memory, user responses, and PAS 901 compliance metrics.
+
+2. Integration with TCS GenAI API:
+   - Endpoint: https://genailab.tcs.in/
+   - Chat Model: azure/genailab-maas-gpt-4o
+   - Embeddings Model: azure/genailab-maas-text-embedding-3-large
+   - Include a robust, offline-resilient local fallback layer so the system functions seamlessly even during network degradation.
+
+3. Frontend Angular 16 Interactive Experience (Port 4203):
+   - Multi-Modal Input: Voice input via Web Speech API SpeechRecognition (STT mic record button), Image Upload drag-and-drop with OCR extraction preview, and standard text chat.
+   - Speaker Audio Output (TTS): Web Speech API SpeechSynthesis with a global speaker toggle button (On/Muted) and dynamic pacing speed controls (0.75x, 1.0x, 1.25x, 1.5x).
+   - Chunk Player Panel: Active chunk view with title, bullet points, replay button, skip button, simplify (ELI5 mode) button, and check comprehension button.
+   - Interactive Comprehension Check-In Modal: Pop-up check after each segment with quick-answer options ("Clear", "Explain co-pay", "Slow down audio").
+   - PAS 901 Metrics & Agent Pipeline Dashboard: Visual metrics tracking Comprehension Success Rate (%), Task Completion Rate (%), Total Replays, and Cognitive Load Reduction (%).
+
+4. UI Aesthetics & Accessibility:
+   - Dark glassmorphism styling with Slate Navy background (#0f172a), Electric Purple/Violet gradients (#8b5cf6, #3b82f6), high accessibility contrast, responsive grid, animated audio waveforms, and PAS 901 compliance badges.
+
+5. Directory Structure to Build:
+   - Backend Flask API in Backend_Ref/ running on port 5003 (app.py, config.py, tcs_genai_client.py, mcp_sqlite.py, rag_service.py, ocr_service.py, agents/ folder, requirements.txt, setup.bat, start.bat).
+   - Frontend Angular app in Frontend_Ref/ running on port 4203 (src/app/models, src/app/services, src/app/app.component.ts, .html, .scss, package.json, setup.bat, start.bat).
