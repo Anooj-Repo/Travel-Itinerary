@@ -1,0 +1,101 @@
+I have hackathon and need help with solving problem statement to provide AI solution. We are going to use gen ai TCS option. I already have a repository C:\Users\GenAIKOCVISUSR14\Sebin\Travel-Itinerary where we have created a solution using angular and python flask. frontend-task folder have angular and backend-mcp-task folder have python solution. Idea is to generate a prompt for antigravity cli that we have added to visual studio code for generating the code for the solution. Need help with creating Frontend_Ref and Backend_Ref folder. Please see the problem statement below.
+
+PROBLEM STATEMENT
+{
+Information Chunking and Comprehension Checking in Voice Assistants
+
+PROBLEM STATEMENT
+
+Voice assistants often overwhelm users by delivering too much information at once, making it difficult to follow. For example, Shreya receives a lengthy insurance policy explanation without pauses, causing confusion and disengagement. This overload impairs comprehension and limits effective decision-making. Current systems typically provide unsegmented, continuous speech responses lacking adaptive chunking or comprehension checks. The business impact includes reduced user satisfaction, increased support queries, and lost sales opportunities. Al that breaks responses into manageable segments and verifies user understanding can enhance interaction quality and outcomes.
+
+Data Considerations:
+
+Cognitive load datasets; conversational chunking and summarization data; comprehension feedback datasets; dialogue summarization corpora; user preference datasets; volume sufficient to train adaptive chunking models; preprocessing for text segmentation and semantic coherence; privacy compliance maintained; synthetic dialogue chunking data recommended.
+
+Consider using synthetic or anonymized data where appropriate. Ensure data quality and relevance to the problem context.
+
+SOLUTION EXPECTATIONS
+
+A voice assistant application delivering information in manageable chunks with comprehension prompts; Ul controls for pacing, replay, skip, summarize, and confirmation; backend integration with information service APIs; evaluation using comprehension success, task completion rate, reduced clarification turns, lower abandonment, and user effort reduction; documentation mapping the solution to PAS 901 principles including cognitive accessibility, confirmation and clarity, user control, discoverability, flexible input, and adaptive interaction; demo highlighting chunked delivery. memory assistance, simplified explanations, and comprehension validation.
+
+Accessibility Impact: Benefits users with cognitive, memory, attention, or processing challenges by reducing information overioad. Expected outcome: users can understand complex information in smaller steps and make decisions with greater confidence.
+
+Feel free to explore creative solutions that align with the problem context and objectives.
+}
+
+
+In the chat conversation, please provide option to upload image and use OCR to infer data and voice assistance so that typing of chat is not always required. Please add an option to hear the generated result though speaker if needed. 
+
+
+Go through all the API's listed in below TCS API link. Analyse and use the suitable and necessary API based on our current problem statement. https://genailab.tcs.in/ has the swagger apis for using different AI options. 
+
+I need it to work like there should be an orchestrator AI agent which will be managing different agents working parallelly for different uses. Use the multiple agents concepts in AI world.
+
+Also we need the concept of MCP to add in our project. for the hackathon demo we can use sql-lite as local database and use that instead of any connectors in MCP.
+
+We need to use the concept of rag. It can be used to analyse the document stored in our vector db before checking the LLM.
+
+
+
+
+Please analyse the below Guidelines for our hackathon.
+
+During the final stage of the hackathon, each team will present their AI solution 
+to the jury and audience. This is your opportunity to showcase the problem
+solving approach, technical implementation, and the impact of your project — 
+concisely and convincingly. 
+TCS Confidential | 9   
+Each team will get exactly 5 minutes to present. Ensure that everyone has the 
+opportunity to speak. Time management is critical — plan your demo to highlight 
+the essence of your work effectively.  
+8.6.1. Suggested Flow for Demo 
+• Introduction (30 sec): Briefly state your team’s name, problem statement, and 
+the objective of your solution.  
+• Problem Context (30 sec): What challenge are you solving and why is it 
+important? 
+• Solution Overview (1 min): Describe the AI model, approach taken, tools used, 
+and any innovation introduced. 
+• Live Demo or Walkthrough (2 min): Demonstrate your working prototype or 
+solution flow with emphasis on usability and impact. 
+• Results & Metrics (30 sec): Present performance metrics (e.g., accuracy, 
+precision, AUC), validations, or comparisons with baseline. 
+• Conclusion (30 sec): Summarize key outcomes, limitations (if any), and 
+possible future enhancements. 
+8.6.2. Time Management Tips 
+• Assign a presenter for each flow, rehearse to stay within the time. 
+• Avoid spending too much time on theoretical background. 
+• Prioritize clarity and flow over technical depth — jury may ask follow-up 
+questions afterward. 
+8.7. 
+8.8. 
+Submission Guidelines 
+Each team must submit their solution within the defined Deadline, and it must 
+include: 
+• Source code with README 
+• Model notebook(s) or pipeline with explanation 
+• Presentation deck containing Problem statement, Solution approach, AI/ML 
+techniques and Challenges Faced 
+• Demo video (max 5 minutes) -Optional 
+Evaluation Criteria 
+Projects are evaluated on a blend of innovation, impact, and execution. 
+Scoring Parameters: 
+TCS Confidential | 10   
+• Participation and engagement during sessions 
+• Successful completion of hands-on activities 
+• Completion of the working application 
+• Creativity and innovation in the given projects 
+• Participation and demonstration of understanding quizzes and debates 
+
+
+
+Please generate the Prompt I can use in antigravity cli of visual studio code for generating entire solution.
+
+I need you to create an skill.md to use in anti-gravity for future projects. This is to be used for an AI Hackathon competition where only the problem statements will be changed. I need this skills to use in antigravity for different problem statement scenarios.
+
+
+
+
+
+
+
+
