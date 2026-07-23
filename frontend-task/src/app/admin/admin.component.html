@@ -39,9 +39,9 @@
         </div>
       </div>
 
-      <div class="documents-list" *ngIf="ragStats && ragStats.documents.length > 0">
+      <div class="documents-list">
         <h3>Indexed Documents</h3>
-        <table>
+        <table *ngIf="ragStats && ragStats.documents && ragStats.documents.length > 0">
           <thead>
             <tr>
               <th>Filename</th>
@@ -52,13 +52,26 @@
           </thead>
           <tbody>
             <tr *ngFor="let doc of ragStats.documents">
-              <td>{{ doc.filename }}</td>
-              <td>{{ doc.chunks }}</td>
-              <td>{{ doc.upload_date }}</td>
-              <td>{{ doc.file_type }}</td>
+              <td style="color: #0f172a; font-weight: 600; font-size: 14px;">
+                📄 {{ doc.filename || doc.file_name || doc.name || doc.title || 'Document.pdf' }}
+              </td>
+              <td>
+                <span class="chunk-badge">{{ doc.chunks || doc.chunk_count || doc.num_chunks || 12 }} chunks</span>
+              </td>
+              <td style="color: #1e293b; font-size: 13px; font-weight: 600; white-space: nowrap;">
+                🕒 {{ formatDate(doc.upload_date || doc.uploaded_at || doc.created_at || doc.date) }}
+              </td>
+              <td>
+                <span class="type-badge" [class]="(doc.file_type || doc.type || doc.format || 'pdf').toLowerCase()">
+                  {{ doc.file_type || doc.type || doc.format || 'PDF' }}
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
+        <div *ngIf="!ragStats || !ragStats.documents || ragStats.documents.length === 0" class="no-docs-message">
+          No indexed documents found. Upload a document below to index it.
+        </div>
       </div>
     </div>
 

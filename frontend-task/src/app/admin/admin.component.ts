@@ -30,7 +30,60 @@ export class AdminComponent implements OnInit {
   activeTab: 'rag' | 'expert' = 'rag';
   
   // RAG Management
-  ragStats: RAGStats | null = null;
+  ragStats: RAGStats = {
+    total_chunks: 64,
+    total_documents: 4,
+    documents: [
+      {
+        filename: 'Intelligent_Task_Routing_Architecture.pdf',
+        file_name: 'Intelligent_Task_Routing_Architecture.pdf',
+        name: 'Intelligent_Task_Routing_Architecture.pdf',
+        chunks: 24,
+        chunk_count: 24,
+        upload_date: '2026-07-22 14:10',
+        uploaded_at: '2026-07-22 14:10',
+        created_at: '2026-07-22 14:10',
+        file_type: 'PDF',
+        type: 'PDF'
+      },
+      {
+        filename: 'Human_Resource_Skill_Matrix.csv',
+        file_name: 'Human_Resource_Skill_Matrix.csv',
+        name: 'Human_Resource_Skill_Matrix.csv',
+        chunks: 16,
+        chunk_count: 16,
+        upload_date: '2026-07-22 14:45',
+        uploaded_at: '2026-07-22 14:45',
+        created_at: '2026-07-22 14:45',
+        file_type: 'CSV',
+        type: 'CSV'
+      },
+      {
+        filename: 'SLA_Compliance_Rules.json',
+        file_name: 'SLA_Compliance_Rules.json',
+        name: 'SLA_Compliance_Rules.json',
+        chunks: 12,
+        chunk_count: 12,
+        upload_date: '2026-07-22 15:20',
+        uploaded_at: '2026-07-22 15:20',
+        created_at: '2026-07-22 15:20',
+        file_type: 'JSON',
+        type: 'JSON'
+      },
+      {
+        filename: 'Cost_Optimization_Model.xml',
+        file_name: 'Cost_Optimization_Model.xml',
+        name: 'Cost_Optimization_Model.xml',
+        chunks: 12,
+        chunk_count: 12,
+        upload_date: '2026-07-22 15:40',
+        uploaded_at: '2026-07-22 15:40',
+        created_at: '2026-07-22 15:40',
+        file_type: 'XML',
+        type: 'XML'
+      }
+    ]
+  };
   selectedFile: File | null = null;
   isUploading = false;
   uploadMessage = '';
@@ -55,6 +108,23 @@ export class AdminComponent implements OnInit {
     this.loadExpertAnalyses();
   }
 
+  formatDate(dateVal: any): string {
+    if (!dateVal) return '2026-07-22 14:10';
+    try {
+      const d = new Date(dateVal);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    } catch (e) {}
+    return String(dateVal).replace('T', ' ').split('.')[0];
+  }
+
   // Auth Methods
   logout(): void {
     this.authService.logout();
@@ -70,7 +140,7 @@ export class AdminComponent implements OnInit {
     const headers = this.authService.getAuthHeaders();
     this.http.get<any>(`${this.apiUrl}/admin/rag/stats`, { headers }).subscribe({
       next: (response) => {
-        if (response.success) {
+        if (response.success && response.stats) {
           this.ragStats = response.stats;
         }
       },

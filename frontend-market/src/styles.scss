@@ -1,8 +1,8 @@
-/* Global styles for Capital Markets Risk Summarizer */
+/* Global styles for Capital Markets Risk Summarizer - Dark Theme */
 :root {
   --bg-dark: #020617;
   --bg-slate: #0b0f19;
-  --card-glass: rgba(15, 23, 42, 0.65);
+  --card-glass: rgba(15, 23, 42, 0.75);
   --border-glass: rgba(255, 255, 255, 0.08);
 
   --indigo: #6366f1;
@@ -12,6 +12,7 @@
   --cyan: #06b6d4;
   --text-light: #f8fafc;
   --text-muted: #94a3b8;
+  color-scheme: dark;
 }
 
 * {
@@ -20,11 +21,14 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   font-family: 'Inter', sans-serif;
   background-color: var(--bg-dark);
+  background: radial-gradient(circle at 10% 10%, #0f172a 0%, #0b0f19 50%, #020617 100%);
+  background-attachment: fixed;
   color: var(--text-light);
   min-height: 100vh;
+  width: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -36,13 +40,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(2, 6, 23, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 3px;
   &:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(99, 102, 241, 0.4);
   }
 }
+

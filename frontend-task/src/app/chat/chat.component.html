@@ -26,9 +26,21 @@
       <div class="message-content">
         <div class="message-header">
           <span class="message-role">{{ message.role === 'user' ? 'You' : 'AI Assistant' }}</span>
-          <span class="message-time">{{ message.timestamp | date:'short' }}</span>
+          <div class="message-header-right">
+            <button 
+              *ngIf="message.role === 'assistant'" 
+              class="speak-msg-btn" 
+              (click)="speakText(message.content)" 
+              title="Listen to message">
+              🔊
+            </button>
+            <span class="message-time">{{ message.timestamp | date:'short' }}</span>
+          </div>
         </div>
-        <div class="message-text">{{ message.content }}</div>
+        <div class="message-text">
+          <img *ngIf="message.image" [src]="message.image" class="message-image" alt="User upload" />
+          <div class="message-body">{{ message.content }}</div>
+        </div>
       </div>
     </div>
 
@@ -44,19 +56,61 @@
     </div>
   </div>
 
+  <!-- Image Attachment Preview Bar -->
+  <div class="attachment-preview" *ngIf="selectedImage">
+    <img [src]="selectedImage" alt="Attached thumbnail" class="preview-thumbnail" />
+    <span class="preview-filename">{{ selectedFileName }}</span>
+    <button type="button" class="remove-attachment-btn" (click)="removeAttachment()" title="Remove attachment">❌</button>
+  </div>
+
   <div class="input-container">
+    <!-- Hidden File Input for Image Upload -->
+    <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*" style="display: none;" />
+    
+    <!-- Image Upload Button -->
+    <button 
+      type="button" 
+      class="action-icon-btn" 
+      (click)="fileInput.click()" 
+      title="Upload Image" 
+      [disabled]="loading || !sessionId">
+      📷
+    </button>
+
+    <!-- Voice Command (Microphone) Button -->
+    <button 
+      type="button" 
+      class="action-icon-btn" 
+      [class.listening]="isListening" 
+      (click)="toggleVoiceCommand()" 
+      [title]="isListening ? 'Stop Listening' : 'Voice Command (Speech to Text)'" 
+      [disabled]="loading || !sessionId">
+      {{ isListening ? '🔴' : '🎙️' }}
+    </button>
+
+    <!-- Speaker Button (Text to Speech for latest response) -->
+    <button 
+      type="button" 
+      class="action-icon-btn" 
+      [class.speaking]="isSpeaking" 
+      (click)="toggleSpeaker()" 
+      [title]="isSpeaking ? 'Stop Speech' : 'Read Latest Response Aloud'" 
+      [disabled]="loading || !sessionId">
+      {{ isSpeaking ? '🔊' : '🔈' }}
+    </button>
+
     <textarea 
       [(ngModel)]="userMessage"
       (keypress)="onKeyPress($event)"
-      placeholder="Type your question here... (Press Enter to send, Shift+Enter for new line)"
-      rows="3"
+      placeholder="{{ isListening ? 'Listening... Speak into microphone...' : 'Type your question here... (Press Enter to send, Shift+Enter for new line)' }}"
+      rows="2"
       class="message-input"
       [disabled]="loading || !sessionId"></textarea>
     
     <button 
       class="send-btn"
       (click)="sendMessage()"
-      [disabled]="!userMessage.trim() || loading || !sessionId">
+      [disabled]="(!userMessage.trim() && !selectedImage) || loading || !sessionId">
       {{ loading ? '⏳' : '📤' }} Send
     </button>
   </div>
